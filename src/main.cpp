@@ -1,13 +1,13 @@
 #include <Arduino.h>
-#define CH_A 8
-#define CH_C 7
+#define CH_A A2
+#define CH_C A3
 
 #define MA1 11
 #define MA2 6
 #define MB2 3
 #define MB1 5
 
-unsigned long pulse_duration_A; //min 1090 max 1950
+unsigned long pulse_duration_A; 
 unsigned long pulse_duration_C;
  
 byte PWM_A;
@@ -24,6 +24,26 @@ const int min_pulse_C = 1120;
 const int max_pulse_C = 2000;
 const uint16_t mid_pulse_min_C = 1490; //lower bound of deadzone for channel A
 const uint16_t mid_pulse_max_C = 1510; //lower bound of deadzone for channel A
+
+void stop(uint8_t a){
+  analogWrite(a, 255);
+  analogWrite(a, 255);
+}
+
+void off(uint8_t a){
+  analogWrite(a, 0);
+  analogWrite(a, 0);
+}
+
+void forward(uint8_t a, byte b){
+  analogWrite(a, b);
+  analogWrite(a, 0);
+}
+
+void backward(uint8_t a, byte b){
+  analogWrite(a, 0);
+  analogWrite(a, b);
+}
 
 void setup() {
   pinMode(CH_A, INPUT);
@@ -72,24 +92,4 @@ void loop() {
     forward(MA2, PWM_B);
     off(MA1);
   }
-}
-
-void stop(uint8_t a){
-  analogWrite(a, 255);
-  analogWrite(a, 255);
-}
-
-void off(uint8_t a){
-  analogWrite(a, 0);
-  analogWrite(a, 0);
-}
-
-void forward(uint8_t a, byte b){
-  analogWrite(a, b);
-  analogWrite(a, 0);
-}
-
-void backward(uint8_t a, byte b){
-  analogWrite(a, 0);
-  analogWrite(a, b);
 }
