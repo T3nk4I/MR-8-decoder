@@ -56,6 +56,22 @@ void loop() {
     off(MA1);
   }
 
+  // --- Process Channel C (Motor 1) ---
+  if (pulse_duration_C >= mid_pulse_min_C && pulse_duration_C <= mid_pulse_max_C){
+    PWM_B = 0;
+    off(MA1);
+    off(MA2);
+  }else if (pulse_duration_C < mid_pulse_min_C){
+    PWM_B = map(pulse_duration_C, min_pulse_C, mid_pulse_min_C, 0, 255);
+    PWM_B = constrain(PWM_B, 0, 255);
+    forward(MA1, PWM_B);
+    off(MA2);
+  }else if (pulse_duration_C > mid_pulse_max_C){
+    PWM_B = map(pulse_duration_C, mid_pulse_max_C, max_pulse_C, 0, 255);
+    PWM_B = constrain(PWM_B, 0, 255);
+    forward(MA2, PWM_B);
+    off(MA1);
+  }
 }
 
 void stop(uint8_t a){
