@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#define CH_A 6
-#define CH_B 7
+#define CH_A 8
+#define CH_C 7
 
 #define MA1 11
 #define MA2 6
@@ -8,62 +8,72 @@
 #define MB1 5
 
 unsigned long pulse_duration_A; //min 1090 max 1950
-unsigned long pulse_duration_B;
+unsigned long pulse_duration_C;
+ 
+byte PWM_A;
+byte PWM_B;
 
+//channel A threshhold values change or modify using trim
 const int min_pulse_A = 1090;
 const int max_pulse_A = 1950;
-const int min_pulse_B = 1090;
-const int max_pulse_B = 1950;
+const uint16_t mid_pulse_min_A = 1492; //lower bound of deadzone for channel A
+const uint16_t mid_pulse_max_A = 1500; //lower bound of deadzone for channel A
+
+//channel C threshhold values change or modify using trim
+const int min_pulse_C = 1120;
+const int max_pulse_C = 2000;
+const uint16_t mid_pulse_min_C = 1490; //lower bound of deadzone for channel A
+const uint16_t mid_pulse_max_C = 1510; //lower bound of deadzone for channel A
 
 void setup() {
   pinMode(CH_A, INPUT);
-  pinMode(CH_B, INPUT);
+  pinMode(CH_C, INPUT);
+  pinMode(MA1, OUTPUT);
+  pinMode(MA2, OUTPUT);
+  pinMode(MB1, OUTPUT);
+  pinMode(MB2, OUTPUT);
   Serial.begin(9600);
 }
 
 void loop() {
   pulse_duration_A = pulseIn(CH_A, HIGH);
-  pulse_duration_B = pulseIn(CH_B, HIGH);
-  byte PWM_A = map(pulse_duration_A, min_pulse_A, max_pulse_A, 0, 255);
-  byte PWM_B = map(pulse_duration_B, min_pulse_B, max_pulse_B, 0, 255);
-  Serial.print(PWM_A);
-  Serial.print("\t");
-  Serial.println(PWM_B);
-  if (PWM_A = 128){
-    off();
-  }else if (PWM_A > 128){
-    //forward();
-  }else if (PWM_A < 128){
-    //backward();
+  pulse_duration_C = pulseIn(CH_C, HIGH);
+
+  // --- Process Channel A (Motor 1) ---
+  if (pulse_duration_A >= mid_pulse_min_A && pulse_duration_A <= mid_pulse_max_A){
+    PWM_A = 0;
+    off(MA1);
+    off(MA2);
+  }else if (pulse_duration_A < mid_pulse_min_A){
+    PWM_A = map(pulse_duration_A, min_pulse_A, mid_pulse_min_A, 0, 255);
+    PWM_A = constrain(PWM_A, 0, 255);
+    forward(MA1, PWM_A);
+    off(MA2);
+  }else if (pulse_duration_A > mid_pulse_max_A){
+    PWM_A = map(pulse_duration_A, mid_pulse_max_A, max_pulse_A, 0, 255);
+    PWM_A = constrain(PWM_A, 0, 255);
+    forward(MA2, PWM_A);
+    off(MA1);
   }
-  
-  
+
 }
 
-void stop(){
-  analogWrite(MA1, 255);
-  analogWrite(MA2, 255);
-  analogWrite(MB1, 255);
-  analogWrite(MB2, 255);
+void stop(uint8_t a){
+  analogWrite(a, 255);
+  analogWrite(a, 255);
 }
 
-void off(){
-  analogWrite(MA1, 0);
-  analogWrite(MA2, 0);
-  analogWrite(MB1, 0);
-  analogWrite(MB2, 0);
+void off(uint8_t a){
+  analogWrite(a, 0);
+  analogWrite(a, 0);
 }
 
-void forward(byte a, byte b){
-  analogWrite(MA1, a);
-  analogWrite(MA2, 0);
-  analogWrite(MB1, b);
-  analogWrite(MB2, 0);
+void forward(uint8_t a, byte b){
+  analogWrite(a, b);
+  analogWrite(a, 0);
 }
 
-void backward(byte a, byte b){
-  analogWrite(MA1, 0);
-  analogWrite(MA2, a);
-  analogWrite(MB1, 0);
-  analogWrite(MB2, b);
+void backward(uint8_t a, byte b){
+  analogWrite(a, 0);
+  analogWrite(a, b);
 }
